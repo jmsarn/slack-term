@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	fp "path/filepath"
 
 	"github.com/OpenPeeDeeP/xdg"
-	"github.com/gizak/termui/v3"
+	"github.com/gizak/termui"
 )
 
 const (
@@ -82,7 +81,7 @@ func CreateConfigFile(filepath string) (*os.File, error) {
 	}
 
 	payload := "{\"slack_token\": \"\"}"
-	err := ioutil.WriteFile(filepath, []byte(payload), 0755)
+	err := os.WriteFile(filepath, []byte(payload), 0755)
 	if err != nil {
 		return nil, err
 	}

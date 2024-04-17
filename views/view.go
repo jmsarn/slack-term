@@ -1,7 +1,7 @@
 package views
 
 import (
-	"github.com/gizak/termui/v3"
+	"github.com/gizak/termui"
 
 	"github.com/jmsarn/slack-term/components"
 	"github.com/jmsarn/slack-term/config"

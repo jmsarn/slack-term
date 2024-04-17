@@ -51,18 +51,14 @@ func (o osxNotificator) push(title string, text string, iconPath string) *exec.C
 
 	// Checks if terminal-notifier exists, and is accessible.
 
-	term_notif := CheckTermNotif()
-	os_version_check := CheckMacOSVersion()
-
 	// if terminal-notifier exists, use it.
 	// else, fall back to osascript. (Mavericks and later.)
-
-	if term_notif == true {
+	if CheckTermNotif() {
 		return exec.Command("terminal-notifier", "-title", o.AppName, "-message", text, "-subtitle", title, "-appIcon", iconPath)
-	} else if os_version_check == true {
-		title = strings.Replace(title, `"`, `\"`,  -1)
-		text = strings.Replace(text, `"`, `\"`,  -1)
-		
+	} else if CheckMacOSVersion() {
+		title = strings.Replace(title, `"`, `\"`, -1)
+		text = strings.Replace(text, `"`, `\"`, -1)
+
 		notification := fmt.Sprintf("display notification \"%s\" with title \"%s\" subtitle \"%s\"", text, o.AppName, title)
 		return exec.Command("osascript", "-e", notification)
 	}
@@ -76,14 +72,10 @@ func (o osxNotificator) push(title string, text string, iconPath string) *exec.C
 func (o osxNotificator) pushCritical(title string, text string, iconPath string) *exec.Cmd {
 
 	// same function as above...
-
-	term_notif := CheckTermNotif()
-	os_version_check := CheckMacOSVersion()
-
-	if term_notif == true {
+	if CheckTermNotif() {
 		// timeout set to 30 seconds, to show the importance of the notification
 		return exec.Command("terminal-notifier", "-title", o.AppName, "-message", text, "-subtitle", title, "-timeout", "30")
-	} else if os_version_check == true {
+	} else if CheckMacOSVersion() {
 		notification := fmt.Sprintf("display notification \"%s\" with title \"%s\" subtitle \"%s\"", text, o.AppName, title)
 		return exec.Command("osascript", "-e", notification)
 	}
@@ -92,15 +84,17 @@ func (o osxNotificator) pushCritical(title string, text string, iconPath string)
 
 }
 
-type linuxNotificator struct{}
+type linuxNotificator struct {
+	AppName string
+}
 
 func (l linuxNotificator) push(title string, text string, iconPath string) *exec.Cmd {
-	return exec.Command("notify-send", "-i", iconPath, title, text)
+	return exec.Command("notify-send", "-i", iconPath, title, text, "-a", l.AppName)
 }
 
 // Causes the notification to stick around until clicked.
 func (l linuxNotificator) pushCritical(title string, text string, iconPath string) *exec.Cmd {
-	return exec.Command("notify-send", "-i", iconPath, title, text, "-u", "critical")
+	return exec.Command("notify-send", "-i", iconPath, title, text, "-a", l.AppName, "-u", "critical")
 }
 
 type windowsNotificator struct{}
@@ -111,7 +105,7 @@ func (w windowsNotificator) push(title string, text string, iconPath string) *ex
 
 // Causes the notification to stick around until clicked.
 func (w windowsNotificator) pushCritical(title string, text string, iconPath string) *exec.Cmd {
-	return exec.Command("notify-send", "-i", iconPath, title, text, "/s", "true", "/p", "2")
+	return exec.Command("growlnotify", "/i:", iconPath, "/t:", title, text, "/s", "true", "/p", "2")
 }
 
 func New(o Options) *Notificator {
@@ -123,7 +117,7 @@ func New(o Options) *Notificator {
 	case "darwin":
 		Notifier = osxNotificator{AppName: o.AppName}
 	case "linux":
-		Notifier = linuxNotificator{}
+		Notifier = linuxNotificator{AppName: o.AppName}
 	case "windows":
 		Notifier = windowsNotificator{}
 

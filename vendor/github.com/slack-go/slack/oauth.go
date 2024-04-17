@@ -33,15 +33,18 @@ type OAuthResponse struct {
 
 // OAuthV2Response ...
 type OAuthV2Response struct {
-	AccessToken string                    `json:"access_token"`
-	TokenType   string                    `json:"token_type"`
-	Scope       string                    `json:"scope"`
-	BotUserID   string                    `json:"bot_user_id"`
-	AppID       string                    `json:"app_id"`
-	TeamID      string                    `json:"team_id"`
-	Team        OAuthV2ResponseTeam       `json:"team"`
-	Enterprise  OAuthV2ResponseEnterprise `json:"enterprise"`
-	AuthedUser  OAuthV2ResponseAuthedUser `json:"authed_user"`
+	AccessToken         string                       `json:"access_token"`
+	TokenType           string                       `json:"token_type"`
+	Scope               string                       `json:"scope"`
+	BotUserID           string                       `json:"bot_user_id"`
+	AppID               string                       `json:"app_id"`
+	Team                OAuthV2ResponseTeam          `json:"team"`
+	IncomingWebhook     OAuthResponseIncomingWebhook `json:"incoming_webhook"`
+	Enterprise          OAuthV2ResponseEnterprise    `json:"enterprise"`
+	IsEnterpriseInstall bool                         `json:"is_enterprise_install"`
+	AuthedUser          OAuthV2ResponseAuthedUser    `json:"authed_user"`
+	RefreshToken        string                       `json:"refresh_token"`
+	ExpiresIn           int                          `json:"expires_in"`
 	SlackResponse
 }
 
@@ -59,10 +62,21 @@ type OAuthV2ResponseEnterprise struct {
 
 // OAuthV2ResponseAuthedUser ...
 type OAuthV2ResponseAuthedUser struct {
-	ID          string `json:"id"`
-	Scope       string `json:"scope"`
+	ID           string `json:"id"`
+	Scope        string `json:"scope"`
+	AccessToken  string `json:"access_token"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	TokenType    string `json:"token_type"`
+}
+
+// OpenIDConnectResponse ...
+type OpenIDConnectResponse struct {
+	Ok          bool   `json:"ok"`
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
+	IdToken     string `json:"id_token"`
+	SlackResponse
 }
 
 // GetOAuthToken retrieves an AccessToken
@@ -79,10 +93,26 @@ func GetOAuthTokenContext(ctx context.Context, client httpClient, clientID, clie
 	return response.AccessToken, response.Scope, nil
 }
 
+// GetBotOAuthToken retrieves top-level and bot AccessToken - https://api.slack.com/legacy/oauth#bot_user_access_tokens
+func GetBotOAuthToken(client httpClient, clientID, clientSecret, code, redirectURI string) (accessToken string, scope string, bot OAuthResponseBot, err error) {
+	return GetBotOAuthTokenContext(context.Background(), client, clientID, clientSecret, code, redirectURI)
+}
+
+// GetBotOAuthTokenContext retrieves top-level and bot AccessToken with a custom context
+func GetBotOAuthTokenContext(ctx context.Context, client httpClient, clientID, clientSecret, code, redirectURI string) (accessToken string, scope string, bot OAuthResponseBot, err error) {
+	response, err := GetOAuthResponseContext(ctx, client, clientID, clientSecret, code, redirectURI)
+	if err != nil {
+		return "", "", OAuthResponseBot{}, err
+	}
+	return response.AccessToken, response.Scope, response.Bot, nil
+}
+
+// GetOAuthResponse retrieves OAuth response
 func GetOAuthResponse(client httpClient, clientID, clientSecret, code, redirectURI string) (resp *OAuthResponse, err error) {
 	return GetOAuthResponseContext(context.Background(), client, clientID, clientSecret, code, redirectURI)
 }
 
+// GetOAuthResponseContext retrieves OAuth response with custom context
 func GetOAuthResponseContext(ctx context.Context, client httpClient, clientID, clientSecret, code, redirectURI string) (resp *OAuthResponse, err error) {
 	values := url.Values{
 		"client_id":     {clientID},
@@ -112,6 +142,47 @@ func GetOAuthV2ResponseContext(ctx context.Context, client httpClient, clientID,
 	}
 	response := &OAuthV2Response{}
 	if err = postForm(ctx, client, APIURL+"oauth.v2.access", values, response, discard{}); err != nil {
+		return nil, err
+	}
+	return response, response.Err()
+}
+
+// RefreshOAuthV2Token with a context, gets a V2 OAuth access token response
+func RefreshOAuthV2Token(client httpClient, clientID, clientSecret, refreshToken string) (resp *OAuthV2Response, err error) {
+	return RefreshOAuthV2TokenContext(context.Background(), client, clientID, clientSecret, refreshToken)
+}
+
+// RefreshOAuthV2TokenContext with a context, gets a V2 OAuth access token response
+func RefreshOAuthV2TokenContext(ctx context.Context, client httpClient, clientID, clientSecret, refreshToken string) (resp *OAuthV2Response, err error) {
+	values := url.Values{
+		"client_id":     {clientID},
+		"client_secret": {clientSecret},
+		"refresh_token": {refreshToken},
+		"grant_type":    {"refresh_token"},
+	}
+	response := &OAuthV2Response{}
+	if err = postForm(ctx, client, APIURL+"oauth.v2.access", values, response, discard{}); err != nil {
+		return nil, err
+	}
+	return response, response.Err()
+}
+
+// GetOpenIDConnectToken exchanges a temporary OAuth verifier code for an access token for Sign in with Slack.
+// see: https://api.slack.com/methods/openid.connect.token
+func GetOpenIDConnectToken(client httpClient, clientID, clientSecret, code, redirectURI string) (resp *OpenIDConnectResponse, err error) {
+	return GetOpenIDConnectTokenContext(context.Background(), client, clientID, clientSecret, code, redirectURI)
+}
+
+// GetOpenIDConnectTokenContext with a context, gets an access token for Sign in with Slack.
+func GetOpenIDConnectTokenContext(ctx context.Context, client httpClient, clientID, clientSecret, code, redirectURI string) (resp *OpenIDConnectResponse, err error) {
+	values := url.Values{
+		"client_id":     {clientID},
+		"client_secret": {clientSecret},
+		"code":          {code},
+		"redirect_uri":  {redirectURI},
+	}
+	response := &OpenIDConnectResponse{}
+	if err = postForm(ctx, client, APIURL+"openid.connect.token", values, response, discard{}); err != nil {
 		return nil, err
 	}
 	return response, response.Err()

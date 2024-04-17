@@ -3,7 +3,6 @@
 package fuzzy
 
 import (
-	"bytes"
 	"unicode"
 	"unicode/utf8"
 
@@ -12,10 +11,21 @@ import (
 	"golang.org/x/text/unicode/norm"
 )
 
-var foldTransformer = unicodeFoldTransformer{}
-var noopTransformer = transform.Nop
-var normalizeTransformer = transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
-var normalizeFoldTransformer = transform.Chain(normalizeTransformer, foldTransformer)
+func noopTransformer() transform.Transformer {
+	return nopTransformer{}
+}
+
+func foldTransformer() transform.Transformer {
+	return unicodeFoldTransformer{}
+}
+
+func normalizeTransformer() transform.Transformer {
+	return transform.Chain(norm.NFD, runes.Remove(runes.In(unicode.Mn)), norm.NFC)
+}
+
+func normalizedFoldTransformer() transform.Transformer {
+	return transform.Chain(normalizeTransformer(), foldTransformer())
+}
 
 // Match returns true if source matches target using a fuzzy-searching
 // algorithm. Note that it doesn't implement Levenshtein distance (see
@@ -23,28 +33,31 @@ var normalizeFoldTransformer = transform.Chain(normalizeTransformer, foldTransfo
 // approximation. The method will return true only if each character in the
 // source can be found in the target and occurs after the preceding matches.
 func Match(source, target string) bool {
-	return match(source, target, noopTransformer)
+	return match(source, target, noopTransformer())
 }
 
 // MatchFold is a case-insensitive version of Match.
 func MatchFold(source, target string) bool {
-	return match(source, target, foldTransformer)
+	return match(source, target, foldTransformer())
 }
 
 // MatchNormalized is a unicode-normalized version of Match.
 func MatchNormalized(source, target string) bool {
-	return match(source, target, normalizeTransformer)
+	return match(source, target, normalizeTransformer())
 }
 
 // MatchNormalizedFold is a unicode-normalized and case-insensitive version of Match.
 func MatchNormalizedFold(source, target string) bool {
-	return match(source, target, normalizeFoldTransformer)
+	return match(source, target, normalizedFoldTransformer())
 }
 
 func match(source, target string, transformer transform.Transformer) bool {
-	source = stringTransform(source, transformer)
-	target = stringTransform(target, transformer)
+	sourceT := stringTransform(source, transformer)
+	targetT := stringTransform(target, transformer)
+	return matchTransformed(sourceT, targetT)
+}
 
+func matchTransformed(source, target string) bool {
 	lenDiff := len(target) - len(source)
 
 	if lenDiff < 0 {
@@ -71,29 +84,32 @@ Outer:
 
 // Find will return a list of strings in targets that fuzzy matches source.
 func Find(source string, targets []string) []string {
-	return find(source, targets, noopTransformer)
+	return find(source, targets, noopTransformer())
 }
 
 // FindFold is a case-insensitive version of Find.
 func FindFold(source string, targets []string) []string {
-	return find(source, targets, foldTransformer)
+	return find(source, targets, foldTransformer())
 }
 
 // FindNormalized is a unicode-normalized version of Find.
 func FindNormalized(source string, targets []string) []string {
-	return find(source, targets, normalizeTransformer)
+	return find(source, targets, normalizeTransformer())
 }
 
 // FindNormalizedFold is a unicode-normalized and case-insensitive version of Find.
 func FindNormalizedFold(source string, targets []string) []string {
-	return find(source, targets, normalizeFoldTransformer)
+	return find(source, targets, normalizedFoldTransformer())
 }
 
 func find(source string, targets []string, transformer transform.Transformer) []string {
+	sourceT := stringTransform(source, transformer)
+
 	var matches []string
 
 	for _, target := range targets {
-		if match(source, target, transformer) {
+		targetT := stringTransform(target, transformer)
+		if matchTransformed(sourceT, targetT) {
 			matches = append(matches, target)
 		}
 	}
@@ -108,22 +124,22 @@ func find(source string, targets []string, transformer transform.Transformer) []
 // the Levenshtein calculation, only deletions need be considered, required
 // additions and substitutions would fail the match test.
 func RankMatch(source, target string) int {
-	return rank(source, target, noopTransformer)
+	return rank(source, target, noopTransformer())
 }
 
 // RankMatchFold is a case-insensitive version of RankMatch.
 func RankMatchFold(source, target string) int {
-	return rank(source, target, foldTransformer)
+	return rank(source, target, foldTransformer())
 }
 
 // RankMatchNormalized is a unicode-normalized version of RankMatch.
 func RankMatchNormalized(source, target string) int {
-	return rank(source, target, normalizeTransformer)
+	return rank(source, target, normalizeTransformer())
 }
 
 // RankMatchNormalizedFold is a unicode-normalized and case-insensitive version of RankMatch.
 func RankMatchNormalizedFold(source, target string) int {
-	return rank(source, target, normalizeFoldTransformer)
+	return rank(source, target, normalizedFoldTransformer())
 }
 
 func rank(source, target string, transformer transform.Transformer) int {
@@ -164,29 +180,32 @@ Outer:
 // RankFind is similar to Find, except it will also rank all matches using
 // Levenshtein distance.
 func RankFind(source string, targets []string) Ranks {
-	return rankFind(source, targets, noopTransformer)
+	return rankFind(source, targets, noopTransformer())
 }
 
 // RankFindFold is a case-insensitive version of RankFind.
 func RankFindFold(source string, targets []string) Ranks {
-	return rankFind(source, targets, foldTransformer)
+	return rankFind(source, targets, foldTransformer())
 }
 
-// RankFindNormalized is a unicode-normalizedversion of RankFind.
+// RankFindNormalized is a unicode-normalized version of RankFind.
 func RankFindNormalized(source string, targets []string) Ranks {
-	return rankFind(source, targets, normalizeTransformer)
+	return rankFind(source, targets, normalizeTransformer())
 }
 
 // RankFindNormalizedFold is a unicode-normalized and case-insensitive version of RankFind.
 func RankFindNormalizedFold(source string, targets []string) Ranks {
-	return rankFind(source, targets, normalizeFoldTransformer)
+	return rankFind(source, targets, normalizedFoldTransformer())
 }
 
 func rankFind(source string, targets []string, transformer transform.Transformer) Ranks {
+	sourceT := stringTransform(source, transformer)
+
 	var r Ranks
 
 	for index, target := range targets {
-		if match(source, target, transformer) {
+		targetT := stringTransform(target, transformer)
+		if matchTransformed(sourceT, targetT) {
 			distance := LevenshteinDistance(source, target)
 			r = append(r, Rank{source, target, distance, index})
 		}
@@ -223,6 +242,11 @@ func (r Ranks) Less(i, j int) bool {
 }
 
 func stringTransform(s string, t transform.Transformer) (transformed string) {
+	// Fast path for the nop transformer to prevent unnecessary allocations.
+	if _, ok := t.(nopTransformer); ok {
+		return s
+	}
+
 	var err error
 	transformed, _, err = transform.String(t, s)
 	if err != nil {
@@ -232,22 +256,37 @@ func stringTransform(s string, t transform.Transformer) (transformed string) {
 	return
 }
 
-type unicodeFoldTransformer struct{}
+type unicodeFoldTransformer struct{ transform.NopResetter }
 
 func (unicodeFoldTransformer) Transform(dst, src []byte, atEOF bool) (nDst, nSrc int, err error) {
-	runes := bytes.Runes(src)
-	var lowerRunes []rune
-	for _, r := range runes {
-		lowerRunes = append(lowerRunes, unicode.ToLower(r))
+	// Converting src to a string allocates.
+	// In theory, it need not; see https://go.dev/issue/27148.
+	// It is possible to write this loop using utf8.DecodeRune
+	// and thereby avoid allocations, but it is noticeably slower.
+	// So just let's wait for the compiler to get smarter.
+	for _, r := range string(src) {
+		if r == utf8.RuneError {
+			// Go spec for ranging over a string says:
+			// If the iteration encounters an invalid UTF-8 sequence,
+			// the second value will be 0xFFFD, the Unicode replacement character,
+			// and the next iteration will advance a single byte in the string.
+			nSrc++
+		} else {
+			nSrc += utf8.RuneLen(r)
+		}
+		r = unicode.ToLower(r)
+		x := utf8.RuneLen(r)
+		if x > len(dst[nDst:]) {
+			err = transform.ErrShortDst
+			break
+		}
+		nDst += utf8.EncodeRune(dst[nDst:], r)
 	}
-
-	srcBytes := []byte(string(lowerRunes))
-	n := copy(dst, srcBytes)
-	if n < len(srcBytes) {
-		err = transform.ErrShortDst
-	}
-
-	return n, n, err
+	return nDst, nSrc, err
 }
 
-func (unicodeFoldTransformer) Reset() {}
+type nopTransformer struct{ transform.NopResetter }
+
+func (nopTransformer) Transform(dst []byte, src []byte, atEOF bool) (int, int, error) {
+	return 0, len(src), nil
+}

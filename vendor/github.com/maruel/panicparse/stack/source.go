@@ -27,11 +27,12 @@ type cache struct {
 
 // Augment processes source files to improve calls to be more descriptive.
 //
-// It modifies goroutines in place.
-func Augment(goroutines []Goroutine) {
+// It modifies goroutines in place. It requires calling ParseDump() with
+// guesspaths set to true to work properly.
+func Augment(goroutines []*Goroutine) {
 	c := &cache{}
-	for i := range goroutines {
-		c.augmentGoroutine(&goroutines[i])
+	for _, g := range goroutines {
+		c.augmentGoroutine(g)
 	}
 }
 
@@ -49,7 +50,7 @@ func (c *cache) augmentGoroutine(goroutine *Goroutine) {
 	// For each call site, look at the next call and populate it. Then we can
 	// walk back and reformat things.
 	for i := range goroutine.Stack.Calls {
-		c.load(goroutine.Stack.Calls[i].LocalSourcePath())
+		c.load(goroutine.Stack.Calls[i].LocalSrcPath)
 	}
 
 	// Once all loaded, we can look at the next call when available.
@@ -65,6 +66,9 @@ func (c *cache) augmentGoroutine(goroutine *Goroutine) {
 
 // load loads a source file and parses the AST tree. Failures are ignored.
 func (c *cache) load(fileName string) {
+	if fileName == "" {
+		return
+	}
 	if _, ok := c.parsed[fileName]; ok {
 		return
 	}
@@ -74,7 +78,7 @@ func (c *cache) load(fileName string) {
 		c.files[fileName] = nil
 		return
 	}
-	log.Printf("load(%s)", fileName)
+	//log.Printf("load(%s)", fileName)
 	if _, ok := c.files[fileName]; !ok {
 		var err error
 		if c.files[fileName], err = ioutil.ReadFile(fileName); err != nil {
@@ -101,7 +105,7 @@ func (c *cache) load(fileName string) {
 }
 
 func (c *cache) getFuncAST(call *Call) *ast.FuncDecl {
-	if p := c.parsed[call.LocalSourcePath()]; p != nil {
+	if p := c.parsed[call.LocalSrcPath]; p != nil {
 		return p.getFuncAST(call.Func.Name(), call.Line)
 	}
 	return nil
@@ -126,7 +130,6 @@ func (p *parsedFile) getFuncAST(f string, l int) (d *ast.FuncDecl) {
 
 	// Walk the AST to find the lineToByteOffset that fits the line number.
 	var lastFunc *ast.FuncDecl
-	var found ast.Node
 	// Inspect() goes depth first. This means for example that a function like:
 	// func a() {
 	//   b := func() {}
@@ -141,9 +144,6 @@ func (p *parsedFile) getFuncAST(f string, l int) (d *ast.FuncDecl) {
 		}
 		if n == nil {
 			return true
-		}
-		if found != nil {
-			// We are walking up.
 		}
 		if int(n.Pos()) >= p.lineToByteOffset[l] {
 			// We are expecting a ast.CallExpr node. It can be harder to figure out

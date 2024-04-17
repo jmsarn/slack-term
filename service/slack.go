@@ -80,7 +80,7 @@ func (s *SlackService) GetChannels() ([]components.ChannelItem, error) {
 	// Initial request
 	initChans, initCur, err := s.Client.GetConversations(
 		&slack.GetConversationsParameters{
-			ExcludeArchived: "true",
+			ExcludeArchived: true,
 			Limit:           1000,
 			Types: []string{
 				"public_channel",
@@ -102,7 +102,7 @@ func (s *SlackService) GetChannels() ([]components.ChannelItem, error) {
 		channels, cursor, err := s.Client.GetConversations(
 			&slack.GetConversationsParameters{
 				Cursor:          nextCur,
-				ExcludeArchived: "true",
+				ExcludeArchived: true,
 				Limit:           1000,
 				Types: []string{
 					"public_channel",
@@ -267,28 +267,10 @@ func (s *SlackService) SetUserAsActive() {
 
 // MarkAsRead will set the channel as read
 func (s *SlackService) MarkAsRead(channelItem components.ChannelItem) {
-	switch channelItem.Type {
-	case components.ChannelTypeChannel:
-		s.Client.SetChannelReadMark(
-			channelItem.ID, fmt.Sprintf("%f",
-				float64(time.Now().Unix())),
-		)
-	case components.ChannelTypeGroup:
-		s.Client.SetGroupReadMark(
-			channelItem.ID, fmt.Sprintf("%f",
-				float64(time.Now().Unix())),
-		)
-	case components.ChannelTypeMpIM:
-		s.Client.MarkIMChannel(
-			channelItem.ID, fmt.Sprintf("%f",
-				float64(time.Now().Unix())),
-		)
-	case components.ChannelTypeIM:
-		s.Client.MarkIMChannel(
-			channelItem.ID, fmt.Sprintf("%f",
-				float64(time.Now().Unix())),
-		)
-	}
+	s.Client.MarkConversation(
+		channelItem.ID, fmt.Sprintf("%f",
+			float64(time.Now().Unix())),
+	)
 }
 
 // SendMessage will send a message to a particular channel
@@ -769,9 +751,9 @@ func (s *SlackService) CreateMessageFromMessageEvent(message *slack.MessageEvent
 }
 
 // parseMessage will parse a message string and find and replace:
-//	- emoji's
-//	- mentions
-//	- html unescape
+//   - emoji's
+//   - mentions
+//   - html unescape
 func parseMessage(s *SlackService, msg string) string {
 	if s.Config.Emoji {
 		msg = parseEmoji(msg)
@@ -788,8 +770,9 @@ func parseMessage(s *SlackService, msg string) string {
 // string and replace them with the correct username with and @ symbol
 //
 // Mentions have the following format:
+//
 //	<@U12345|erroneousboat>
-// 	<@U12345>
+//	<@U12345>
 func parseMentions(s *SlackService, msg string) string {
 	r := regexp.MustCompile(`\<@(\w+\|*\w+)\>`)
 

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/0xAX/notificator"
-	"github.com/gizak/termui/v3"
+	"github.com/gizak/termui"
 	termbox "github.com/nsf/termbox-go"
 
 	"github.com/jmsarn/slack-term/config"
