@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"html"
 
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 	"github.com/lithammer/fuzzysearch/fuzzy"
 )
 

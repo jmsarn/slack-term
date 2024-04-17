@@ -10,7 +10,7 @@ Installation
 
 #### Binary installation
 
-[Download](https://github.com/erroneousboat/slack-term/releases) a
+[Download](https://github.com/jmsarn/slack-term/releases) a
 compatible binary for your system. For convenience, place `slack-term` in a
 directory where you can access it from the command line. Usually this is
 `/usr/local/bin`.
@@ -24,8 +24,8 @@ $ mv slack-term /usr/local/bin
 If you want, you can also get `slack-term` via Go:
 
 ```bash
-$ go get -u github.com/erroneousboat/slack-term
-$ cd $GOPATH/src/github.com/erroneousboat/slack-term
+$ go get -u github.com/jmsarn/slack-term
+$ cd $GOPATH/src/github.com/jmsarn/slack-term
 $ go install .
 ```
 
@@ -35,13 +35,13 @@ You can also run it with docker, make sure you have a valid config file
 on your host system.
 
 ```bash
-docker run -it -v [config-file]:/config erroneousboat/slack-term
+docker run -it -v [config-file]:/config jmsarn/slack-term
 ```
 
 Setup
 -----
 
-1. Get a slack token, click [here](https://github.com/erroneousboat/slack-term/wiki#running-slack-term-without-legacy-tokens)
+1. Get a slack token, click [here](https://github.com/jmsarn/slack-term/wiki#running-slack-term-without-legacy-tokens)
 
 2. Running `slack-term` for the first time, will create a default config file at
    `~/.config/slack-term/config`.
@@ -51,7 +51,7 @@ $ slack-term
 ```
 
 3. Update the config file and update your `slack_token` For more configuration
-   options of the `config` file, see the [wiki](https://github.com/erroneousboat/slack-term/wiki).
+   options of the `config` file, see the [wiki](https://github.com/jmsarn/slack-term/wiki).
 
 ```javascript
 {

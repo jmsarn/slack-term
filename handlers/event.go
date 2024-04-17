@@ -10,14 +10,14 @@ import (
 	"time"
 
 	"github.com/0xAX/notificator"
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 	termbox "github.com/nsf/termbox-go"
 	"github.com/slack-go/slack"
 
-	"github.com/erroneousboat/slack-term/components"
-	"github.com/erroneousboat/slack-term/config"
-	"github.com/erroneousboat/slack-term/context"
-	"github.com/erroneousboat/slack-term/views"
+	"github.com/jmsarn/slack-term/components"
+	"github.com/jmsarn/slack-term/config"
+	"github.com/jmsarn/slack-term/context"
+	"github.com/jmsarn/slack-term/views"
 )
 
 var scrollTimer *time.Timer

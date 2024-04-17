@@ -1,7 +1,7 @@
 package components
 
 import (
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 )
 
 type Threads struct {

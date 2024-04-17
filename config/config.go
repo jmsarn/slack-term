@@ -9,7 +9,7 @@ import (
 	fp "path/filepath"
 
 	"github.com/OpenPeeDeeP/xdg"
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 )
 
 const (

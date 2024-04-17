@@ -15,8 +15,8 @@ import (
 
 	"github.com/slack-go/slack"
 
-	"github.com/erroneousboat/slack-term/components"
-	"github.com/erroneousboat/slack-term/config"
+	"github.com/jmsarn/slack-term/components"
+	"github.com/jmsarn/slack-term/config"
 )
 
 type SlackService struct {

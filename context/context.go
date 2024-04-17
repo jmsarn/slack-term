@@ -7,12 +7,12 @@ import (
 	"os"
 
 	"github.com/0xAX/notificator"
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 	termbox "github.com/nsf/termbox-go"
 
-	"github.com/erroneousboat/slack-term/config"
-	"github.com/erroneousboat/slack-term/service"
-	"github.com/erroneousboat/slack-term/views"
+	"github.com/jmsarn/slack-term/config"
+	"github.com/jmsarn/slack-term/service"
+	"github.com/jmsarn/slack-term/views"
 )
 
 const (

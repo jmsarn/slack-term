@@ -6,7 +6,7 @@ ENV GOPATH /go
 RUN	apk add --no-cache \
 	ca-certificates
 
-COPY . /go/src/github.com/erroneousboat/slack-term
+COPY . /go/src/github.com/jmsarn/slack-term
 
 RUN set -x \
 	&& apk add --no-cache --virtual .build-deps \
@@ -15,7 +15,7 @@ RUN set -x \
 		libc-dev \
 		libgcc \
 		make \
-	&& cd /go/src/github.com/erroneousboat/slack-term \
+	&& cd /go/src/github.com/jmsarn/slack-term \
 	&& make build \
 	&& mv ./bin/slack-term /usr/bin/slack-term \
 	&& apk del .build-deps \

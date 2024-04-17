@@ -7,11 +7,11 @@ import (
 	"os"
 
 	"github.com/OpenPeeDeeP/xdg"
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 	termbox "github.com/nsf/termbox-go"
 
-	"github.com/erroneousboat/slack-term/context"
-	"github.com/erroneousboat/slack-term/handlers"
+	"github.com/jmsarn/slack-term/context"
+	"github.com/jmsarn/slack-term/handlers"
 )
 
 const (
@@ -26,7 +26,7 @@ VERSION:
     %s
 
 WEBSITE:
-    https://github.com/erroneousboat/slack-term
+    https://github.com/jmsarn/slack-term
 
 GLOBAL OPTIONS:
    -config [path-to-config-file]

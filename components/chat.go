@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 	runewidth "github.com/mattn/go-runewidth"
 
-	"github.com/erroneousboat/slack-term/config"
+	"github.com/jmsarn/slack-term/config"
 )
 
 // Chat is the definition of a Chat component

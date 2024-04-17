@@ -1,4 +1,4 @@
-Please read [CONTRIBUTING.md](https://github.com/erroneousboat/slack-term/blob/master/CONTRIBUTING.md)
+Please read [CONTRIBUTING.md](https://github.com/jmsarn/slack-term/blob/master/CONTRIBUTING.md)
 
 ---
 

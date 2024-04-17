@@ -3,7 +3,7 @@ package components
 import (
 	"fmt"
 
-	"github.com/erroneousboat/termui"
+	"github.com/gizak/termui/v3"
 )
 
 // Debug can be used to relay debugging information in the Debug component,
