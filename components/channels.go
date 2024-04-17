@@ -318,7 +318,7 @@ func (c *Channels) Search(term string) {
 	for _, m := range matches {
 		for i, item := range c.ChannelItems {
 			if m == item.Name {
-				c.SearchMatches = append(c.SearchMatches, i)
+				c.SearchMatches = append([]int{i}, c.SearchMatches...)
 				break
 			}
 		}
