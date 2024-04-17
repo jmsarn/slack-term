@@ -3,6 +3,7 @@ package components
 import (
 	"fmt"
 	"html"
+	"slices"
 
 	"github.com/gizak/termui"
 	"github.com/lithammer/fuzzysearch/fuzzy"
@@ -306,19 +307,20 @@ func (c *Channels) ScrollDown() {
 // when a match has been found the selected channel will then
 // be the channel that has been found
 func (c *Channels) Search(term string) {
-	c.SearchMatches = make([]int, 0)
 
-	targets := make([]string, 0)
-	for _, c := range c.ChannelItems {
-		targets = append(targets, c.Name)
+	targets := make([]string, len(c.ChannelItems))
+	for i, c := range c.ChannelItems {
+		targets[i] = c.Name
 	}
 
 	matches := fuzzy.Find(term, targets)
+	slices.Reverse(matches)
+	c.SearchMatches = make([]int, len(matches))
 
-	for _, m := range matches {
-		for i, item := range c.ChannelItems {
+	for i, m := range matches {
+		for j, item := range c.ChannelItems {
 			if m == item.Name {
-				c.SearchMatches = append([]int{i}, c.SearchMatches...)
+				c.SearchMatches[i] = j
 				break
 			}
 		}
