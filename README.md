@@ -1,5 +1,6 @@
 slack-term
 ==========
+Fork of [jpbruinsslot/slack-term](https://github.com/jpbruinsslot/slack-term)
 
 A [Slack](https://slack.com) client for your terminal.
 
@@ -27,15 +28,6 @@ If you want, you can also get `slack-term` via Go:
 $ go get -u github.com/jmsarn/slack-term
 $ cd $GOPATH/src/github.com/jmsarn/slack-term
 $ go install .
-```
-
-#### Via docker
-
-You can also run it with docker, make sure you have a valid config file
-on your host system.
-
-```bash
-docker run -it -v [config-file]:/config jmsarn/slack-term
 ```
 
 Setup
